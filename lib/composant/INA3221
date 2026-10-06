@@ -1,0 +1,133 @@
+from machine import I2C, Pin
+import time
+
+class CST:
+    """Classe du composant INA3221
+    Permet de récupérer la tension du bus et du shunt 
+    afin de déterminé l'intensité et la tension en un point du circuit
+    """
+
+    __INA3221_ADDR = 0x40
+
+    __REG_CONFIG = 0x00
+    __REG_SHUNT_VOLTAGE_1 = 0x01
+    __REG_BUS_VOLTAGE_1 = 0x02
+    __REG_SHUNT_VOLTAGE_2 = 0x03
+    __REG_BUS_VOLTAGE_2 = 0x04
+    __REG_SHUNT_VOLTAGE_3 = 0x05
+    __REG_BUS_VOLTAGE_3 = 0x06
+
+    __RES_INT = 0.1
+    
+    def __init__(self,debug=False):
+        """
+        Instanciation de la classe BMS
+        """
+        self._debug = debug
+        self.__i2c = I2C(0)
+        self.__canal1 = []
+        self.__canal2 = []
+        self.__canal3 = []
+        self.scan_i2c()
+        self.__configure_ina3221()
+        
+    def __log(self, message: str):
+        if self._debug:
+            print(message)
+
+    def scan_i2c(self):
+        """
+        Fonction pour scanner l'I2C
+        """
+        devices = self.__i2c.scan()
+        if devices:
+            self.__log("Peripheriques trouves sur le bus I2C :")
+            for device in devices:
+                self.__log("Adresse : 0x{:02X}".format(device))
+        else:
+            self.__log("Aucun périphérique trouvé sur le bus I2C.")
+
+    def __read_register(self,reg):
+        """
+        Fonction pour lire un registre 16 bits du INA3221
+        Lire 2 octets du registre
+        Convertir les données en un entier 16 bits (big-endian)
+        """
+        data = self.__i2c.readfrom_mem(self.__INA3221_ADDR, reg, 2)
+        value = (data[0] << 8) | data[1]
+        return value
+        
+    def __configure_ina3221(self):
+        """
+        Fonction pour configurer le INA3221
+        Configuration par défaut : mode continu, calibration
+        Configuration: Reset=pas de reset (0),AVG=16 (010), VBUS CT=1.1ms (100), VSHUNT CT=1.1ms (100), mode=Shunt+Bus continuous (111), mode=Bus continuous(110)
+        """
+        config = 0x4126   # ou 0x5127 ou 0x1127 ou 0x7127
+        self.__i2c.writeto_mem(self.__INA3221_ADDR, self.__REG_CONFIG, bytearray([config >> 8, config & 0xFF]))
+
+    def read_channel_data(self,channel):
+        """
+        Lire les valeurs de la tension de bus et du courant (chaque canal)
+        """
+        if channel == 1:
+            shunt_voltage = self.__read_register(self.__REG_SHUNT_VOLTAGE_1)
+            bus_voltage = self.__read_register(self.__REG_BUS_VOLTAGE_1)
+        elif channel == 2:
+            shunt_voltage = self.__read_register(self.__REG_SHUNT_VOLTAGE_2)
+            bus_voltage = self.__read_register(self.__REG_BUS_VOLTAGE_2)
+        elif channel == 3:
+            shunt_voltage = self.__read_register(self.__REG_SHUNT_VOLTAGE_3)
+            bus_voltage = self.__read_register(self.__REG_BUS_VOLTAGE_3)
+    
+        shunt_voltage = shunt_voltage * 0.0025  
+        bus_voltage = bus_voltage * 0.001 
+        #ampere = shunt_voltage / self.__RES_INT
+
+        return bus_voltage,shunt_voltage #, ampere
+
+    def main_tension(self,channel):
+        """
+        Scanner le bus I2C pour vérifier les périphériques connectés
+        Si l'INA3221 est trouvé, on procède à la configuration et à la lecture des données
+        """
+        self.__canal1 = []
+        self.__canal2 = []
+        self.__canal3 = []
+
+        if channel == 1:
+            shunt_voltage_1, bus_voltage_1 = self.read_channel_data(1)
+            self.__canal1.append(bus_voltage_1),self.__canal1.append(shunt_voltage_1)
+            self.__log("Canal 1 - Tension bus: {:.3f}V, Tension de shunt: {:.3f}".format(bus_voltage_1,shunt_voltage_1))
+        elif channel == 2:
+            shunt_voltage_2, bus_voltage_2 = self.read_channel_data(2)
+            self.__canal2.append(bus_voltage_2),self.__canal2.append(shunt_voltage_2)
+            self.__log("Canal 2 - Tension bus: {:.3f}V, Tension de shunt: {:.3f}".format(bus_voltage_2,shunt_voltage_2))
+        elif channel == 3:
+            shunt_voltage_3, bus_voltage_3 = self.read_channel_data(3)
+            self.__canal3.append(bus_voltage_3),self.__canal3.append(shunt_voltage_3)
+            pself.__log("Canal 3 - Tension bus: {:.3f}V, Tension de shunt: {:.3f}".format(bus_voltage_3,shunt_voltage_3))           
+        
+    def get_canal1(self):
+        """
+        Getter pour récupérer les donnees du canal 1
+        """
+        return self.__canal1
+    
+    def get_canal2(self):
+        """
+        Getter pour récupérer les donnees du canal 2
+        """
+        return self.__canal2
+    
+    def get_canal3(self):
+        """
+        Getter pour récupérer les donnees du canal 3
+        """
+        return self.__canal3
+
+if __name__ == "__main__":
+    tension = CST()
+    tension.main_tension(1)
+    self.__log(tension.get_canal1())
+        
