@@ -1,0 +1,89 @@
+{
+    "moteur": {
+        "moteur_gaz": {
+            "pin": 23,
+            "frequence": 100,
+            "etat_actif_min": 1000,
+            "etat_actif_max": 2000
+        },
+        "servo_profondeur": {
+            "pin": 20,
+            "frequence": 100,
+            "etat_actif_min": 1000,
+            "etat_actif_max": 2000,
+            "angle_min": -97,
+            "angle_max": 97
+        },
+        "servo_ailerons1": {
+            "pin": 22,
+            "frequence": 100,
+            "etat_actif_min": 1000,
+            "etat_actif_max": 2000,
+            "angle_min": -97,
+            "angle_max": 97
+        },
+        "servo_ailerons2": {
+            "pin": 21,
+            "frequence": 100,
+            "etat_actif_min": 1000,
+            "etat_actif_max": 2000,
+            "angle_min": -97,
+            "angle_max": 97
+        },
+        "servo_direction": {
+            "pin": 19,
+            "frequence": 100,
+            "etat_actif_min": 1000,
+            "etat_actif_max": 2000
+        }
+    },
+    "communication": {
+        "bus_i2c_IMU": {
+            "pins": ["P9", "P8"],
+            "baudrate": 20000
+        },
+        "bus_i2c_fast": {
+            "pins": ["P10", "P11"],
+            "baudrate": 400000
+        },
+        "ibus": {
+            "baudrate": 115200,
+            "pins": ["P3", "P4"],
+            "timeout_chars": 10
+        },
+        "lora": {
+            "app_eui": "5252525252525252",
+            "app_key": "14807FEE4372E32AAE6EDF98A6D767D5"
+        }
+    },
+    "composant": {
+        "BNO055": {
+            "adresse_i2c_decimal": 40
+        },
+        "DFR_GNSS_GPS":{
+            "adresse_i2c_decimal": 102
+        },
+        "SEN0343": {
+            "adresse_i2c_decimal": 0
+        }
+    },
+    "controleur": {
+        "rafraichissement_seconde": 0.02,
+        "rafraichissement_lora_seconde": 10
+    },
+    "assistance": {
+        "rectification_dynamique_etat_actif_range_from_middle": 5,
+        "Kp_ailerons": 3,
+        "Ki_ailerons": 0,
+        "kp_ailerons": 1,
+        "Kp_profondeur": 3,
+        "Ki_profondeur": 0,
+        "kp_profondeur": 1,
+        "rectification_fixe_etat_actif_gaz": 0,
+        "rectification_fixe_etat_actif_mid_air": true,
+        "rectification_fixe_etat_actif_profondeur": 400,
+        "rectification_fixe_etat_actif_ailerons": 400,
+        "rectification_fixe_etat_actif_direction": 400
+    },
+    "debug": false
+}
